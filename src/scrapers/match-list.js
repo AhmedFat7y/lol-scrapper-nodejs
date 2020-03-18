@@ -51,9 +51,30 @@ export default class MatchListScraper extends ScraperBase {
 				query
 			);
 			const { endIndex, totalGames, matches } = matchListResult;
-
-			await MatchDataStore.saveMany(matches);
-			await MatchListQueryDataStore.save({
+			const existingMatchesList = await MatchDataStore.findInIdList(
+				matches.map(match => match.gameId)
+			);
+			const nonExistMatches = Utils.filterExistingItems(
+				matches,
+				existingMatchesList,
+				"gameId"
+			);
+			if (nonExistMatches && nonExistMatches.length) {
+				console.log(
+					'Saving',
+					nonExistMatches.length,
+					'matches from',
+					matches.length,
+					'matches'
+				);
+				try {
+					await MatchDataStore.saveMany(nonExistMatches);
+				} catch (error) {
+					console.error(error);
+					debugger;
+				}
+			}
+			await MatchListQuMatchListQueryDataStore.save({
 				queryId: matchlistQueryId,
 				query,
 			});
