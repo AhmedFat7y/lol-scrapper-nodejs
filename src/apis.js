@@ -1,4 +1,10 @@
 import TeemoJS from 'teemojs';
+import pm2 from 'pm2';
+import ecosystemConfig from '../ecosystem.config';
+
+pm2.connect(error => {
+	error && console.error(error);
+});
 
 export default class API {
 	constructor(apiKey, regionName) {
@@ -6,33 +12,45 @@ export default class API {
 		this.regionName = regionName;
 		this.client = TeemoJS(apiKey);
 	}
-
-	async getSummoner(accountId) {
-		return this.client.get(
-			this.regionName,
+	async get(...args) {
+		debugger;
+		const res = await this.client.get(...args);
+		if ([401, 403].includes(res?.status?.status_code)) {
+			console.error(res);
+			pm2.stop(ecosystemConfig.apps[0].name, error => {
+				error && console.error(error);
+			});
+		} else if (res?.status?.message) {
+			return null;
+		}
+		return res;
+	}
+	async getSummoner({ accountId, region }) {
+		return this.get(
+			region || this.regionName,
 			'summoner.getByAccountId',
 			accountId
 		);
 	}
 
-	async getMatchList(accountId, query = { beginIndex: 0 }) {
-		return this.client.get(
-			this.regionName,
+	async getMatchList({ accountId, region, query = { beginIndex: 0 } }) {
+		return this.get(
+			region || this.regionName,
 			'match.getMatchlist',
 			accountId,
 			query
 		);
 	}
 
-	async getMatchDetails(matchId) {
-		return this.client.get(this.regionName, 'match.getMatch', matchId);
+	async getMatchDetails({ gameId, region }) {
+		return this.get(region || this.regionName, 'match.getMatch', gameId);
 	}
 
-	async getMatchTimeline(matchId) {
-		return this.client.get(
-			this.regionName,
+	async getMatchTimeline({ gameId, region }) {
+		return this.get(
+			region || this.regionName,
 			'match.getMatchTimeline',
-			matchId
+			gameId
 		);
 	}
 }

@@ -1,6 +1,7 @@
 export default class ScraperBase {
-	constructor(apis) {
+	constructor(apis, region) {
 		this.apis = apis;
+		this.region = region;
 	}
 	async initialize() {
 		throw new Error('Not Implemented');

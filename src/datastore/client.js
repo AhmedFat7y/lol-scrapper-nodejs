@@ -1,5 +1,5 @@
 import { MongoClient } from 'mongodb';
-class DataStoreClient {
+export class DataStoreClient {
 	isConnected() {
 		return this.mongoClient.isConnected();
 	}

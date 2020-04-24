@@ -10,32 +10,33 @@ import Utils from '../utils';
 export default class MatchListScraper extends ScraperBase {
 	async initialize() {
 		await SummonerDataStore.resetProcessing();
-		const summoner = await SummonerDataStore.findUnprocessedSingle();
-		this.summonersQueue.push(summoner);
 	}
 
 	async execute() {
-		await this.matchlistPromise;
-		const summoner = await SummonerDataStore.findUnprocessedSingle();
+		const summoner = await SummonerDataStore.findUnprocessedSingle(
+			this.region
+		);
 		if (!summoner) {
 			console.log('No summoner found');
 			return false;
 		}
-		const { accountId, name } = summoner;
+		const { accountId, name, platformId } = summoner;
 		let beginIndex = 0;
 		let moreGamesExist = true;
 		do {
 			const query = { beginIndex };
 			const matchlistQueryId = Utils.calculateMatchListQueryId(
 				accountId,
+				platformId,
 				query
 			);
 
 			const exists = await MatchListQueryDataStore.checkExists(
-				matchlistQueryId
+				matchlistQueryId,
+				platformId
 			);
 			if (exists) {
-				console.log('Query ID exists:', queryId);
+				console.log('Query ID exists:', matchlistQueryId);
 				beginIndex += 100;
 				continue;
 			}
@@ -46,10 +47,14 @@ export default class MatchListScraper extends ScraperBase {
 				beginIndex
 			);
 
-			const matchListResult = await this.apis.getMatchList(
+			const matchListResult = await this.apis.getMatchList({
 				accountId,
-				query
-			);
+				region: platformId,
+				query,
+			});
+			if (!matchListResult) {
+				return false;
+			}
 			const { endIndex, totalGames, matches } = matchListResult;
 			const existingMatchesList = await MatchDataStore.findInIdList(
 				matches.map(match => match.gameId)
@@ -57,7 +62,7 @@ export default class MatchListScraper extends ScraperBase {
 			const nonExistMatches = Utils.filterExistingItems(
 				matches,
 				existingMatchesList,
-				"gameId"
+				'gameId'
 			);
 			if (nonExistMatches && nonExistMatches.length) {
 				console.log(
@@ -67,21 +72,18 @@ export default class MatchListScraper extends ScraperBase {
 					matches.length,
 					'matches'
 				);
-				try {
-					await MatchDataStore.saveMany(nonExistMatches);
-				} catch (error) {
-					console.error(error);
-					debugger;
-				}
+				await MatchDataStore.saveMany(nonExistMatches);
 			}
-			await MatchListQuMatchListQueryDataStore.save({
+			await MatchListQueryDataStore.save({
 				queryId: matchlistQueryId,
+				platformId,
 				query,
 			});
 			moreGamesExist = endIndex < totalGames;
 			beginIndex = endIndex;
+			await Utils.delay(2 * 1000);
 		} while (moreGamesExist);
-		await SummonerDataStore.markProcessed(accountId);
+		await SummonerDataStore.markProcessed(accountId, platformId);
 		return true;
 	}
 }

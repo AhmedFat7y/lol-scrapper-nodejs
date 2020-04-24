@@ -12,12 +12,15 @@ export default class DataStoreBase {
 		return this.dataStoreClient.db.collection(this.collectionName);
 	}
 
-	updateWithID(id, update) {
-		this.collection.update({ [this.idField]: id }, { $set: update });
+	updateWithID(id, update, extraQuery = {}) {
+		return this.collection.updateOne(
+			{ [this.idField]: id, ...extraQuery },
+			{ $set: update }
+		);
 	}
 
 	updateMany(query, update) {
-		this.collection.update(query, { $set: update });
+		return this.collection.updateOne(query, { $set: update });
 	}
 
 	find(id) {
@@ -30,12 +33,16 @@ export default class DataStoreBase {
 	}
 
 	save(item) {
+		debugger;
 		item.state = consts.STATE_INITIAL;
-		return this.collection.insert(item);
+		return this.collection.insertOne(item);
 	}
 
-	checkExists(id) {
-		const count = this.collection.countDocuments({ [this.idField]: id });
+	async checkExists(id, platformId) {
+		const count = await this.collection.countDocuments({
+			[this.idField]: id,
+			platformId,
+		});
 		return count > 0;
 	}
 
@@ -46,14 +53,32 @@ export default class DataStoreBase {
 		);
 	}
 
-	markProcessed(id) {
-		return this.updateWithID(id, { state: consts.STATE_DONE });
+	markProcessed(id, platformId) {
+		return this.updateWithID(
+			id,
+			{ state: consts.STATE_DONE },
+			{ platformId }
+		);
 	}
 
-	markProcessing(id) {
-		return this.updateWithID(id, { state: consts.STATE_PROCESSING });
+	markProcessing(id, platformId) {
+		return this.updateWithID(
+			id,
+			{ state: consts.STATE_PROCESSING },
+			{ platformId }
+		);
 	}
-	findUnprocessedSingle() {
-		return this.collection.findOne({ state: consts.STATE_INITIAL });
+
+	findUnprocessedSingle(platformId) {
+		return this.collection.findOne({
+			state: consts.STATE_INITIAL,
+			platformId,
+		});
+	}
+
+	findInIdList(idsList) {
+		return this.collection
+			.find({ [this.idField]: { $in: idsList } })
+			.toArray();
 	}
 }
