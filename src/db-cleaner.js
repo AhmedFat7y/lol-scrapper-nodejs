@@ -19,7 +19,7 @@ async function copyCollection(collectionName, copyFrom, copyTo) {
 			if (error.code !== 11000) {
 				throw error;
 			} else {
-				console.log('Ignore Duplicate:', item.gameId, item.platformId);
+				logger.log('Ignore Duplicate:', item.gameId, item.platformId);
 			}
 		}
 	}
@@ -39,5 +39,5 @@ async function main() {
 }
 
 main()
-	.catch(console.error)
+	.catch(logger.error.bind(logger))
 	.finally(() => process.exit());

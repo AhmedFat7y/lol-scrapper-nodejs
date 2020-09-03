@@ -1,3 +1,7 @@
+import Logger from '../logger';
+
+const logger = new Logger('base-scraper');
+
 export default class ScraperBase {
 	constructor(apis, region) {
 		this.apis = apis;
@@ -12,7 +16,7 @@ export default class ScraperBase {
 	}
 
 	async start() {
-		const result = await this.execute().catch(console.error);
+		const result = await this.execute().catch(logger.error.bind(logger));
 		const boundStart = this.start.bind(this);
 		if (result) {
 			setImmediate(boundStart);

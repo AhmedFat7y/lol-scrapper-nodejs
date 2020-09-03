@@ -68,3 +68,4 @@ typings/
 
 db_initialization_script.js
 db-cleaner*
+dist/

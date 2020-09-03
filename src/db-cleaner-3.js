@@ -26,7 +26,7 @@ const defaultClient = new DataStoreClient();
 // 				continue;
 // 			}
 // 			if (participant.player.platformId !== participant.player.currentPlatformId) {
-// 				console.log('found extra one');
+// 				logger.log('found extra one');
 // 				players.push({
 // 					accountId: participant.player.accountId,
 // 					name: participant.player.summonerName,
@@ -68,7 +68,7 @@ async function copyRegionQueryId(query, regionName, destinationCollection) {
 		if (error.code !== 11000) {
 			throw error;
 		} else {
-			console.log('Ignore Duplicate:', query.queryId);
+			logger.log('Ignore Duplicate:', query.queryId);
 		}
 	}
 	return true;
@@ -81,7 +81,7 @@ async function* copyRegionQueryIdsGenerator(queriesCursor, regionName, destinati
 				const query = await queriesCursor.next();
 				return copyRegionQueryId(query, regionName, destinationCollection);
 			} else {
-				console.log('Done', regionName);
+				logger.log('Done', regionName);
 				return null;
 			}
 		});
@@ -138,7 +138,7 @@ function matchesIterateeWrapper(destinationCollection) {
 			if (error.code !== 11000) {
 				throw error;
 			} else {
-				// console.log('Retrying for duplicate', error.errmsg);
+				// logger.log('Retrying for duplicate', error.errmsg);
 				return cursorIteratee(match);
 			}
 		}
@@ -165,7 +165,7 @@ function summonersIterateeWrapper(destinationCollection) {
 			{ $set: { state: summoner.state } }
 		);
 		if (result.modifiedCount !== 1) {
-			console.log('Failed:', summoner);
+			logger.log('Failed:', summoner);
 		}
 	};
 }
@@ -197,7 +197,7 @@ function matchlistqueryIterateeWrapper(collection) {
 			}
 		);
 		if (result.modifiedCount !== 1) {
-			console.log('Failed:', matchlistquery);
+			logger.log('Failed:', matchlistquery);
 		}
 	};
 }
@@ -242,6 +242,6 @@ async function main() {
 }
 
 main()
-	.catch((error) => console.error(error))
-	.then(() => console.log('Done'))
+	.catch((error) => logger.error(error))
+	.then(() => logger.log('Done'))
 	.finally(() => process.exit());

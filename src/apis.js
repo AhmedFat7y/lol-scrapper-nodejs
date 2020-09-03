@@ -1,9 +1,11 @@
 import TeemoJS from 'teemojs';
 import pm2 from 'pm2';
 import ecosystemConfig from '../ecosystem.config';
+import Logger from './logger';
 
+const logger = new Logger('apis');
 pm2.connect((error) => {
-	error && console.error(error);
+	error && logger.error(error);
 });
 
 export default class API {
@@ -15,9 +17,9 @@ export default class API {
 	async get(...args) {
 		const res = await this.client.get(...args);
 		if ([401, 403].includes(res?.status?.status_code)) {
-			console.error(res);
+			logger.error(res);
 			pm2.stop(ecosystemConfig.apps[0].name, (error) => {
-				error && console.error(error);
+				error && logger.error(error);
 			});
 		} else if (res?.status?.message) {
 			return null;

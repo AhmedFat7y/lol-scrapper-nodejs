@@ -28,7 +28,7 @@ async function generateSummoners(copyFrom, copyTo) {
 				continue;
 			}
 			if (participant.platformId !== participant.currentPlatformId) {
-				console.log('found extra one');
+				logger.log('found extra one');
 				players.push({
 					accountId: participant.player.accountId,
 					name: participant.player.summonerName,
@@ -68,7 +68,7 @@ async function copyRegionQueryId(query, regionName, destinationCollection) {
 		if (error.code !== 11000) {
 			throw error;
 		} else {
-			console.log('Ignore Duplicate:', query.queryId);
+			logger.log('Ignore Duplicate:', query.queryId);
 		}
 	}
 	return true;
@@ -81,7 +81,7 @@ async function* copyRegionQueryIdsGenerator(queriesCursor, regionName, destinati
 				const query = await queriesCursor.next();
 				return copyRegionQueryId(query, regionName, destinationCollection);
 			} else {
-				console.log('Done', regionName);
+				logger.log('Done', regionName);
 				return null;
 			}
 		});
@@ -96,7 +96,7 @@ async function* queriesIter(queriesCursor) {
 
 function copyRegionQueryIdsGenerator2(regionName, destinationCollection) {
 	return async function (query) {
-		// console.log('Copying:', regionName, query);
+		// logger.log('Copying:', regionName, query);
 		return copyRegionQueryId(query, regionName, destinationCollection);
 	};
 }
@@ -135,6 +135,6 @@ async function main() {
 }
 
 main()
-	.catch((error) => console.error(error))
-	.then(() => console.log('Done'))
+	.catch((error) => logger.error(error))
+	.then(() => logger.log('Done'))
 	.finally(() => process.exit());

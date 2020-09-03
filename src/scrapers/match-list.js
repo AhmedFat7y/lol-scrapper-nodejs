@@ -1,7 +1,9 @@
 import ScraperBase from './base';
 import { SummonerDataStore, MatchDataStore, MatchListQueryDataStore } from '../datastore';
-
 import Utils from '../utils';
+import Logger from '../logger';
+
+const logger = new Logger('match-list');
 
 export default class MatchListScraper extends ScraperBase {
 	async initialize() {
@@ -11,7 +13,7 @@ export default class MatchListScraper extends ScraperBase {
 	async execute() {
 		const summoner = await SummonerDataStore.findUnprocessedSingle(this.region);
 		if (!summoner) {
-			console.log('No summoner found');
+			logger.log('No summoner found');
 			return false;
 		}
 		const { accountId, name, platformId } = summoner;
@@ -23,11 +25,11 @@ export default class MatchListScraper extends ScraperBase {
 
 			const exists = await MatchListQueryDataStore.checkExists(matchlistQueryId, platformId);
 			if (exists) {
-				console.log('Query ID exists:', matchlistQueryId);
+				logger.log('Query ID exists:', matchlistQueryId);
 				beginIndex += 100;
 				continue;
 			}
-			console.log('Fetch match list for summoner:', name, 'Starting:', beginIndex);
+			logger.log('Fetch match list for summoner:', name, 'Starting:', beginIndex);
 
 			const matchListResult = await this.apis.getMatchList({
 				accountId,
@@ -41,7 +43,7 @@ export default class MatchListScraper extends ScraperBase {
 			const existingMatchesList = await MatchDataStore.findInIdList(matches.map((match) => match.gameId));
 			const nonExistMatches = Utils.filterExistingItems(matches, existingMatchesList, 'gameId');
 			if (nonExistMatches && nonExistMatches.length) {
-				console.log('Saving', nonExistMatches.length, 'matches from', matches.length, 'matches');
+				logger.log('Saving', nonExistMatches.length, 'matches from', matches.length, 'matches');
 				nonExistMatches.forEach((match) => {
 					match.summoners = [accountId];
 				});

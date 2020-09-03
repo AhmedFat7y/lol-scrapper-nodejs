@@ -4,8 +4,10 @@
  "main": "index.js",
  "license": "MIT",
  "scripts": {
-  "start": "yarn babel src --out-dir dist && pm2 restart ecosystem.config.js",
-  "lint": "eslint --ignore-path .gitignore --ignore-path .eslintignore"
+  "start": "babel src --out-dir dist && pm2 restart ecosystem.config.js",
+  "lint": "eslint --ignore-path .gitignore --ignore-path .eslintignore",
+  "logs": "pm2 logs",
+  "stop": "pm2 stop all"
  },
  "dependencies": {
   "@babel/cli": "^7.8.4",
@@ -23,7 +25,6 @@
   "eslint-plugin-prettier": "^3.1.4",
   "husky": "^4.2.5",
   "lint-staged": "^10.3.0",
-  "lol-js": "^2.0.2",
   "mongodb": "^3.5.5",
   "pm2": "^4.2.3",
   "prettier": "^2.1.1",
