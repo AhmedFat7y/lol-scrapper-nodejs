@@ -5,7 +5,6 @@ import Match from './match';
 import MatchListQuery from './matchlistquery';
 import MatchTimeline from './matchtimeline';
 
-
 export { default as Client } from './client';
 export { default as SummonerDataStore } from './summoner';
 export { default as MatchDataStore } from './match';

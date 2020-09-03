@@ -1,3 +1,11 @@
+*.json
+*.yaml
+*.yml
+.*
+env.example
+Dockerfile
+*.md
+
 # Logs
 logs
 *.log
@@ -29,8 +37,7 @@ bower_components
 # node-waf configuration
 .lock-wscript
 
-build/*
-!build/.gitkeep
+build
 
 # Dependency directories
 node_modules/
@@ -57,21 +64,7 @@ typings/
 # dotenv environment constiables file
 .env
 
-# next.js build output
-.next
-
 .vscode
 
-*.iml
-.idea
-
-# serverless files
-.serverless
-.webpack
-dist
-.DS_Store
-
-# todo file
-*.todo
-
-.vscode
+db_initialization_script.js
+db-cleaner*

@@ -1,13 +1,6 @@
-import {
-	Client,
-	SummonerDataStore,
-	MatchDataStore,
-	MatchListQueryDataStore,
-} from './datastore';
+import { Client, SummonerDataStore, MatchDataStore, MatchListQueryDataStore } from './datastore';
 
-import { DataStoreClient } from './datastore/client';
-
-import client from './datastore/client';
+import client, { DataStoreClient } from './datastore/client';
 
 const REGIONS = ['eun1', 'euw1', 'na1'];
 

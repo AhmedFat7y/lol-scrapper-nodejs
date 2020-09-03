@@ -1,4 +1,3 @@
-import _dataStoreClient from './client';
 import * as consts from '../constants';
 
 export default class DataStoreBase {
@@ -13,14 +12,15 @@ export default class DataStoreBase {
 	}
 
 	updateWithID(id, update, extraQuery = {}) {
-		return this.collection.updateOne(
-			{ [this.idField]: id, ...extraQuery },
-			{ $set: update }
-		);
+		return this.collection.updateOne({ [this.idField]: id, ...extraQuery }, { $set: update });
 	}
 
 	updateMany(query, update) {
-		return this.collection.updateOne(query, { $set: update });
+		return this.collection.updateMany(query, update);
+	}
+
+	updateManyWithIDs(ids, update, extraQuery = {}) {
+		return this.updateMany({ [this.idField]: { $in: ids }, ...extraQuery }, update);
 	}
 
 	find(id) {
@@ -28,12 +28,11 @@ export default class DataStoreBase {
 	}
 
 	saveMany(list) {
-		list.forEach(i => (i.state = consts.STATE_INITIAL));
+		list.forEach((i) => (i.state = consts.STATE_INITIAL));
 		return this.collection.insertMany(list);
 	}
 
 	save(item) {
-		debugger;
 		item.state = consts.STATE_INITIAL;
 		return this.collection.insertOne(item);
 	}
@@ -47,26 +46,15 @@ export default class DataStoreBase {
 	}
 
 	resetProcessing() {
-		return this.updateMany(
-			{ processing: consts.STATE_PROCESSING },
-			{ processing: consts.STATE_INITIAL }
-		);
+		return this.updateMany({ processing: consts.STATE_PROCESSING }, { processing: consts.STATE_INITIAL });
 	}
 
 	markProcessed(id, platformId) {
-		return this.updateWithID(
-			id,
-			{ state: consts.STATE_DONE },
-			{ platformId }
-		);
+		return this.updateWithID(id, { state: consts.STATE_DONE }, { platformId });
 	}
 
 	markProcessing(id, platformId) {
-		return this.updateWithID(
-			id,
-			{ state: consts.STATE_PROCESSING },
-			{ platformId }
-		);
+		return this.updateWithID(id, { state: consts.STATE_PROCESSING }, { platformId });
 	}
 
 	findUnprocessedSingle(platformId) {
@@ -77,8 +65,6 @@ export default class DataStoreBase {
 	}
 
 	findInIdList(idsList) {
-		return this.collection
-			.find({ [this.idField]: { $in: idsList } })
-			.toArray();
+		return this.collection.find({ [this.idField]: { $in: idsList } }).toArray();
 	}
 }

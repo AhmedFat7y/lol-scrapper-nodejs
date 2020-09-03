@@ -18,10 +18,7 @@ const defaultClient = new DataStoreClient();
 async function generateSummoners(copyFrom, copyTo) {
 	const matchesCursor = await copyFrom
 		.collection('matches')
-		.find(
-			{ participantIdentities: { $exists: true } },
-			{ participantIdentities: 1 }
-		)
+		.find({ participantIdentities: { $exists: true } }, { participantIdentities: 1 })
 		.toArray();
 	for (const match of matchesCursor) {
 		// const match = await matchesCursor.next();
@@ -46,12 +43,10 @@ async function generateSummoners(copyFrom, copyTo) {
 		}
 		const existingPlayers = await copyTo
 			.collection('summoners')
-			.find({ accountId: { $in: players.map(i => i.accountId) } })
+			.find({ accountId: { $in: players.map((i) => i.accountId) } })
 			.toArray();
-		const existingPlayersIds = existingPlayers.map(i => i.accountId);
-		const nonExistentPlayers = players.filter(
-			player => !existingPlayersIds.includes(player.accountId)
-		);
+		const existingPlayersIds = existingPlayers.map((i) => i.accountId);
+		const nonExistentPlayers = players.filter((player) => !existingPlayersIds.includes(player.accountId));
 		if (nonExistentPlayers.length === 0) {
 			continue;
 		}
@@ -79,22 +74,13 @@ async function copyRegionQueryId(query, regionName, destinationCollection) {
 	return true;
 }
 
-async function* copyRegionQueryIdsGenerator(
-	queriesCursor,
-	regionName,
-	destinationCollection
-) {
+async function* copyRegionQueryIdsGenerator(queriesCursor, regionName, destinationCollection) {
 	while (true) {
-		yield queriesCursor.hasNext().then(async hasNext => {
+		yield queriesCursor.hasNext().then(async (hasNext) => {
 			if (hasNext) {
 				const query = await queriesCursor.next();
-				return copyRegionQueryId(
-					query,
-					regionName,
-					destinationCollection
-				);
+				return copyRegionQueryId(query, regionName, destinationCollection);
 			} else {
-				debugger;
 				console.log('Done', regionName);
 				return null;
 			}
@@ -109,8 +95,7 @@ async function* queriesIter(queriesCursor) {
 }
 
 function copyRegionQueryIdsGenerator2(regionName, destinationCollection) {
-	return async function(query) {
-		debugger;
+	return async function (query) {
 		// console.log('Copying:', regionName, query);
 		return copyRegionQueryId(query, regionName, destinationCollection);
 	};
@@ -118,9 +103,7 @@ function copyRegionQueryIdsGenerator2(regionName, destinationCollection) {
 
 async function fixRegionQueries(regionClient, destinationclient, regionName) {
 	const queriesCollection = regionClient.db.collection('matchlistquery');
-	const destinationCollection = destinationclient.db.collection(
-		'matchlistquery'
-	);
+	const destinationCollection = destinationclient.db.collection('matchlistquery');
 	const queriesCursor = await queriesCollection.find({});
 	await Async.eachLimit(
 		queriesIter(queriesCursor),
@@ -136,31 +119,22 @@ async function fixRegionQueries(regionClient, destinationclient, regionName) {
 	// 	10
 	// );
 	// await pool.start();
-	debugger;
 }
 
 async function main() {
 	const promises = [];
 	await defaultClient.connect(MONGO_HOST, MONGO_DB_NAME);
-	const matchlistqueryCollection = defaultClient.db.collection(
-		'matchlistquery'
-	);
-	await matchlistqueryCollection.createIndex(
-		{ queryId: 1 },
-		{ unique: true }
-	);
+	const matchlistqueryCollection = defaultClient.db.collection('matchlistquery');
+	await matchlistqueryCollection.createIndex({ queryId: 1 }, { unique: true });
 	for (const region of REGIONS) {
 		const regionClient = new DataStoreClient();
 		await regionClient.connect(MONGO_HOST, `${region}-${MONGO_DB_NAME}`);
-		promises.push(
-			await fixRegionQueries(regionClient, defaultClient, region)
-		);
+		promises.push(await fixRegionQueries(regionClient, defaultClient, region));
 	}
-	debugger;
 	return Promise.all(promises);
 }
 
 main()
-	.catch(error => console.error(error))
+	.catch((error) => console.error(error))
 	.then(() => console.log('Done'))
 	.finally(() => process.exit());

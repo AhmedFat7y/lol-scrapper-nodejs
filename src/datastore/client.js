@@ -7,9 +7,7 @@ export class DataStoreClient {
 		this.host = host;
 		this.dbName = dbName;
 
-		this.mongoClient = new MongoClient(
-			`mongodb://${this.host}/${this.dbName}`
-		);
+		this.mongoClient = new MongoClient(`mongodb://${this.host}/${this.dbName}`);
 		return this.mongoClient.connect();
 	}
 	get db() {

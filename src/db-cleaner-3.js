@@ -1,11 +1,6 @@
 import Async from 'async';
 import Utils from './utils';
-import {
-	Client,
-	SummonerDataStore,
-	MatchDataStore,
-	MatchListQueryDataStore,
-} from './datastore';
+import { Client, SummonerDataStore, MatchDataStore, MatchListQueryDataStore } from './datastore';
 
 import { DataStoreClient } from './datastore/client';
 
@@ -79,22 +74,13 @@ async function copyRegionQueryId(query, regionName, destinationCollection) {
 	return true;
 }
 
-async function* copyRegionQueryIdsGenerator(
-	queriesCursor,
-	regionName,
-	destinationCollection
-) {
+async function* copyRegionQueryIdsGenerator(queriesCursor, regionName, destinationCollection) {
 	while (true) {
-		yield queriesCursor.hasNext().then(async hasNext => {
+		yield queriesCursor.hasNext().then(async (hasNext) => {
 			if (hasNext) {
 				const query = await queriesCursor.next();
-				return copyRegionQueryId(
-					query,
-					regionName,
-					destinationCollection
-				);
+				return copyRegionQueryId(query, regionName, destinationCollection);
 			} else {
-				debugger;
 				console.log('Done', regionName);
 				return null;
 			}
@@ -114,10 +100,7 @@ function generateSummoners(match) {
 		if (participant.currentAccountId === '0') {
 			continue;
 		}
-		if (
-			participant.player.platformId !==
-			participant.player.currentPlatformId
-		) {
+		if (participant.player.platformId !== participant.player.currentPlatformId) {
 			players.push({
 				accountId: participant.player.accountId,
 				name: participant.player.summonerName,
@@ -137,14 +120,13 @@ function matchesIterateeWrapper(destinationCollection) {
 	return async function cursorIteratee(match) {
 		const players = generateSummoners(match);
 		const existingPlayers = await destinationCollection
-			.find({ accountId: { $in: players.map(i => i.accountId) } })
+			.find({ accountId: { $in: players.map((i) => i.accountId) } })
 			.toArray();
 		const nonExistentPlayers = players.filter(
-			player =>
+			(player) =>
 				!existingPlayers.find(
-					existingPlayer =>
-						existingPlayer.platformId === player.platformId &&
-						existingPlayer.accountId === player.accountId
+					(existingPlayer) =>
+						existingPlayer.platformId === player.platformId && existingPlayer.accountId === player.accountId
 				)
 		);
 		if (!nonExistentPlayers.length) {
@@ -170,11 +152,7 @@ async function addExtraSummoners(regionClient, destinationclient) {
 		{ participantIdentities: { $exists: true } },
 		{ participantIdentities: 1, gameId: 1 }
 	);
-	await Async.eachLimit(
-		cursorIter(matchesCursor),
-		10,
-		matchesIterateeWrapper(destinationCollection)
-	);
+	await Async.eachLimit(cursorIter(matchesCursor), 10, matchesIterateeWrapper(destinationCollection));
 }
 
 function summonersIterateeWrapper(destinationCollection) {
@@ -188,7 +166,6 @@ function summonersIterateeWrapper(destinationCollection) {
 		);
 		if (result.modifiedCount !== 1) {
 			console.log('Failed:', summoner);
-			debugger;
 		}
 	};
 }
@@ -200,11 +177,7 @@ async function updateSummonerStatus(regionClient, destinationClient) {
 		state: { $ne: 'initial' },
 	});
 	await destinationCollection.updateMany({}, { $set: { state: 'initial' } });
-	await Async.eachLimit(
-		cursorIter(summonersCursor),
-		10,
-		summonersIterateeWrapper(destinationCollection)
-	);
+	await Async.eachLimit(cursorIter(summonersCursor), 10, summonersIterateeWrapper(destinationCollection));
 }
 
 function matchlistqueryIterateeWrapper(collection) {
@@ -212,8 +185,7 @@ function matchlistqueryIterateeWrapper(collection) {
 		const platformId = matchlistquery.queryId.match(/platformId-(.*)--/)[1];
 		const newQueryId = matchlistquery.queryId.replace(
 			/platformId-(.*)--/,
-			(match, platformId) =>
-				'platformId-' + platformId.toUpperCase() + '--'
+			(match, platformId) => 'platformId-' + platformId.toUpperCase() + '--'
 		);
 		const result = await collection.updateOne(
 			{ _id: matchlistquery._id },
@@ -226,7 +198,6 @@ function matchlistqueryIterateeWrapper(collection) {
 		);
 		if (result.modifiedCount !== 1) {
 			console.log('Failed:', matchlistquery);
-			debugger;
 		}
 	};
 }
@@ -234,11 +205,7 @@ function matchlistqueryIterateeWrapper(collection) {
 async function addPlatformId(client) {
 	const matchlistqueryCollection = client.db.collection('matchlistquery');
 	const cursor = matchlistqueryCollection.find({});
-	await Async.eachLimit(
-		cursorIter(cursor),
-		30,
-		matchlistqueryIterateeWrapper(matchlistqueryCollection)
-	);
+	await Async.eachLimit(cursorIter(cursor), 30, matchlistqueryIterateeWrapper(matchlistqueryCollection));
 }
 
 async function main() {
@@ -275,6 +242,6 @@ async function main() {
 }
 
 main()
-	.catch(error => console.error(error))
+	.catch((error) => console.error(error))
 	.then(() => console.log('Done'))
 	.finally(() => process.exit());
