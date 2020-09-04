@@ -12,6 +12,6 @@ export default class Logger {
 		console.log(`${this.getPrefix()}:`, ...args);
 	}
 	error(...args) {
-		console.error(`${this.getPrefix}:`, ...args);
+		console.error(`${this.getPrefix()}:`, ...args);
 	}
 }

@@ -44,14 +44,7 @@ export default class MatchListScraper extends ScraperBase {
 			const nonExistMatches = Utils.filterExistingItems(matches, existingMatchesList, 'gameId');
 			if (nonExistMatches && nonExistMatches.length) {
 				logger.log('Saving', nonExistMatches.length, 'matches from', matches.length, 'matches');
-				nonExistMatches.forEach((match) => {
-					match.summoners = [accountId];
-				});
 				await MatchDataStore.saveMany(nonExistMatches);
-				await MatchDataStore.addSummonerToMatches(
-					existingMatchesList.map((i) => i.gameId),
-					accountId
-				);
 			}
 			await MatchListQueryDataStore.save({
 				queryId: matchlistQueryId,

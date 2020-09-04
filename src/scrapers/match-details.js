@@ -9,7 +9,9 @@ export default class MatchDetailsScraper extends ScraperBase {
 	async initialize() {
 		await MatchDataStore.resetProcessing();
 	}
-
+	/**
+	 * @deprecated
+	 */
 	async execute() {
 		const match = await MatchDataStore.findUnprocessedSingle(this.region);
 		if (!match) {
@@ -41,23 +43,37 @@ export default class MatchDetailsScraper extends ScraperBase {
 					platformId: participant.player.platformId,
 				});
 			}
+			// to get over champions like ashe and others considered as players with id 0
+			if (participant.player.currentAccountId === '0') {
+				participant.player.currentAccountId = participant.player.summonerName;
+			}
 			players.push({
 				accountId: participant.player.currentAccountId,
 				name: participant.player.summonerName,
 				platformId: participant.player.currentPlatformId,
 			});
 		}
-		const existingPlayers = await SummonerDataStore.findInIdList(players.map((player) => player.accountId));
-		const nonExistPlayers = Utils.filterExistingItems(players, existingPlayers, 'accountId');
-		if (nonExistPlayers.length > 0) {
-			logger.log('Saving', nonExistPlayers.length, 'summoners from', players.length, 'summoners');
-			try {
-				await SummonerDataStore.saveMany(nonExistPlayers);
-			} catch (err) {
-				logger.error({ players: participantIdentities.map((i) => i.player), nonExistPlayers, existingPlayers });
-				logger.error('Error Saving summoners:', err);
+		let didSaveSummoners;
+		do {
+			didSaveSummoners = true;
+			logger.log('Trying to save summoners');
+			const existingPlayers = await SummonerDataStore.findInIdList(players.map((player) => player.accountId));
+			const nonExistPlayers = Utils.filterExistingItems(players, existingPlayers, 'accountId');
+			if (nonExistPlayers.length > 0) {
+				logger.log('Saving', nonExistPlayers.length, 'summoners from', players.length, 'summoners');
+				try {
+					await SummonerDataStore.saveMany(nonExistPlayers);
+				} catch (err) {
+					logger.error({
+						players: participantIdentities.map((i) => i.player),
+						nonExistPlayers,
+						existingPlayers,
+					});
+					logger.error('Error Saving summoners:', err);
+					didSaveSummoners = false;
+				}
 			}
-		}
+		} while (!didSaveSummoners);
 		const matchTimelineExists = await MatchTimelineDatastore.checkExists(gameId, platformId);
 		if (!matchTimelineExists) {
 			logger.log('Fetch timeline for Match:', gameId);

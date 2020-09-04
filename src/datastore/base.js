@@ -64,7 +64,7 @@ export default class DataStoreBase {
 		});
 	}
 
-	findInIdList(idsList) {
-		return this.collection.find({ [this.idField]: { $in: idsList } }).toArray();
+	findInIdList(idsList, extraQuery = {}) {
+		return this.collection.find({ [this.idField]: { $in: idsList }, ...extraQuery }).toArray();
 	}
 }

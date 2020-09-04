@@ -1,9 +1,5 @@
 use lol-scrapped-data
-
-db.matches.remove({})
-db.matchtimelines.remove({})
-db.matchlistquery.remove({})
-db.summoners.remove({})
+db.dropDatabase()
 
 db.summoners.insertOne({
     "accountId" : "TH84YE32Ghfqo6OxQiy-Mhs5j0B4jA_E7EWKV4kFN91j-Q",
@@ -24,7 +20,8 @@ db.summoners.insertOne({
     "state": "initial"
 })
 
-db.matches.createIndex({gameId: 1}, {unique: true})
-db.matchtimelines.createIndex({gameId: 1}, {unique: true})
-db.matchlistquery.createIndex({queryId: 1}, {unique: true})
-db.summoners.createIndex({accountId: 1}, {unique: true})
+db.matches.createIndex({ gameId: 1 }, { unique: true })
+db.matchtimelines.createIndex({ gameId: 1 }, { unique: true })
+db.matchlistquery.createIndex({ queryId: 1 }, { unique: true })
+db.summoners.createIndex({ accountId: 1 })
+db.summoners.createIndex({ accountId: 1, platformId: 1}, { unique: true })

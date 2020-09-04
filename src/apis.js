@@ -14,6 +14,7 @@ export default class API {
 		this.regionName = regionName;
 		this.client = TeemoJS(apiKey);
 	}
+
 	async get(...args) {
 		const res = await this.client.get(...args);
 		if ([401, 403].includes(res?.status?.status_code)) {
@@ -21,21 +22,37 @@ export default class API {
 			pm2.stop(ecosystemConfig.apps[0].name, (error) => {
 				error && logger.error(error);
 			});
+			return null;
 		} else if (res?.status?.message) {
+			logger.error('API ERror:', args, res.statues.message);
 			return null;
 		}
 		return res;
 	}
+
 	async getSummoner({ accountId, region }) {
 		return this.get(region || this.regionName, 'summoner.getByAccountId', accountId);
 	}
 
 	async getMatchList({ accountId, region, query = { beginIndex: 0 } }) {
-		return this.get(region || this.regionName, 'match.getMatchlist', accountId, query);
+		const matchListResult = await this.get(region || this.regionName, 'match.getMatchlist', accountId, query);
+		if (matchListResult) {
+			matchListResult.matches.forEach((match) => {
+				match.platformId = match.platformId.toUpperCase();
+			});
+		}
+		return matchListResult;
 	}
 
 	async getMatchDetails({ gameId, region }) {
-		return this.get(region || this.regionName, 'match.getMatch', gameId);
+		const matchDetails = await this.get(region || this.regionName, 'match.getMatch', gameId);
+		if (matchDetails) {
+			matchDetails.participantIdentities.forEach((participant) => {
+				participant.player.platformId = participant.player.platformId.toUpperCase();
+				participant.player.currentPlatformId = participant.player.currentPlatformId.toUpperCase();
+			});
+		}
+		return matchDetails;
 	}
 
 	async getMatchTimeline({ gameId, region }) {

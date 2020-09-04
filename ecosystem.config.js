@@ -8,6 +8,7 @@ module.exports = {
 			log_date_format: 'YYYY-MM-DD HH:mm Z',
 			env: {
 				NODE_ENV: 'development',
+				API_KEY: 'RGAPI-e03411f0-bdda-4f64-b9b1-a1e4c0e69bce',
 				MONGO_HOST: 'localhost:23456',
 			},
 			env_production: {
