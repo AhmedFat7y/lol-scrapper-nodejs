@@ -1,6 +1,9 @@
 import * as consts from '../constants';
+import Logger from '../logger';
 
-export default class DataStoreBase {
+const logger = new Logger('Datstore');
+
+class DataStoreBase {
 	constructor(collectionName, idField, dataStoreClient) {
 		this.dataStoreClient = dataStoreClient;
 		this.collectionName = collectionName;
@@ -68,3 +71,42 @@ export default class DataStoreBase {
 		return this.collection.find({ [this.idField]: { $in: idsList }, ...extraQuery }).toArray();
 	}
 }
+
+const timingWrapper = (funcName, func, _this) => {
+	return (...args) => {
+		const time = process.hrtime();
+		let result = func.apply(_this, args);
+		if (result && typeof result.then === 'function') {
+			result = result
+				.then((obj) => {
+					const [seconds, nanos] = process.hrtime(time);
+					const timeLapsed = seconds * 1000 + nanos / 1000000;
+					if (timeLapsed > 1 * 1000) {
+						logger.log('Time:', funcName, `${timeLapsed}`);
+					}
+					return obj;
+				})
+				.catch((err) => {
+					throw err;
+				});
+		}
+		return result;
+	};
+};
+
+const dataStoreHandler = {
+	get(target, property, receiver) {
+		const func = Reflect.get(target, property, receiver);
+		if (typeof func !== 'function') {
+			return func;
+		}
+		return timingWrapper(property, func, receiver);
+	},
+};
+const dataStoreClassHandler = {
+	construct(target, argumentsList) {
+		const instance = Reflect.construct(target, argumentsList);
+		return new Proxy(instance, dataStoreHandler);
+	},
+};
+export default new Proxy(DataStoreBase, dataStoreClassHandler);

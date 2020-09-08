@@ -22,10 +22,10 @@ export default class API {
 			pm2.stop(ecosystemConfig.apps[0].name, (error) => {
 				error && logger.error(error);
 			});
-			return null;
+			throw res;
 		} else if (res?.status?.message) {
-			logger.error('API ERror:', args, res.statues.message);
-			return null;
+			logger.error('API ERror:', args, res.status.message);
+			throw res;
 		}
 		return res;
 	}

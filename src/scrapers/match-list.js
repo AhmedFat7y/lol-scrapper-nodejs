@@ -17,6 +17,11 @@ export default class MatchListScraper extends ScraperBase {
 			return false;
 		}
 		const { accountId, name, platformId } = summoner;
+
+		if (accountId === name) {
+			await SummonerDataStore.markProcessed(accountId, platformId);
+			return true;
+		}
 		let beginIndex = 0;
 		let moreGamesExist = true;
 		do {
@@ -30,15 +35,17 @@ export default class MatchListScraper extends ScraperBase {
 				continue;
 			}
 			logger.log('Fetch match list for summoner:', name, 'Starting:', beginIndex);
-
 			const matchListResult = await this.apis.getMatchList({
 				accountId,
 				region: platformId,
 				query,
 			});
+
 			if (!matchListResult) {
-				return false;
+				await SummonerDataStore.markProcessed(accountId, platformId);
+				return true;
 			}
+
 			const { endIndex, totalGames, matches } = matchListResult;
 			const existingMatchesList = await MatchDataStore.findInIdList(matches.map((match) => match.gameId));
 			const nonExistMatches = Utils.filterExistingItems(matches, existingMatchesList, 'gameId');

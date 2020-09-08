@@ -2,6 +2,7 @@ import ScraperBase from './base';
 import Utils from '../utils';
 import { SummonerDataStore, MatchDataStore, MatchTimelineDatastore } from '../datastore';
 import Logger from '../logger';
+import { STATE_DONE } from '../constants';
 
 const logger = new Logger('match-details');
 
@@ -26,7 +27,10 @@ export default class MatchDetailsScraper extends ScraperBase {
 				region: platformId,
 			});
 			if (!matchDetails) {
-				return false;
+				await MatchDataStore.markProcessed(gameId, platformId);
+				await MatchDataStore.markProcessed(gameId, platformId);
+				logger.error('No match details found for', gameId, platformId);
+				return true;
 			}
 			participantIdentities = matchDetails.participantIdentities;
 			await MatchDataStore.updateWithID(gameId, matchDetails);
@@ -46,6 +50,7 @@ export default class MatchDetailsScraper extends ScraperBase {
 			// to get over champions like ashe and others considered as players with id 0
 			if (participant.player.currentAccountId === '0') {
 				participant.player.currentAccountId = participant.player.summonerName;
+				participant.state = STATE_DONE;
 			}
 			players.push({
 				accountId: participant.player.currentAccountId,
@@ -82,7 +87,9 @@ export default class MatchDetailsScraper extends ScraperBase {
 				region: platformId,
 			});
 			if (!timeline) {
-				return false;
+				logger.error('No timeline found for:', gameId, platformId);
+				await MatchDataStore.markProcessed(gameId, platformId);
+				return true;
 			}
 			await MatchTimelineDatastore.save({
 				...timeline,
