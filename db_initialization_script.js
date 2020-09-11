@@ -20,16 +20,12 @@ db.summoners.insertOne({
     "state": "initial"
 })
 
-db.matches.createIndex({ gameId: 1 }, { unique: true })
-db.matchtimelines.createIndex({ gameId: 1 }, { unique: true })
+db.matches.createIndex({ gameId: 1, platformId: 1 }, { unique: true })
+db.matchtimelines.createIndex({ gameId: 1, platformId: 1 }, { unique: true })
 db.matchlistquery.createIndex({ queryId: 1 }, { unique: true })
 db.summoners.createIndex({ accountId: 1, platformId: 1}, { unique: true })
 
 db.matches.createIndex({ state: 1 })
-db.matchtimelines.createIndex({ gameId: 1 })
+db.matchtimelines.createIndex({ state: 1 })
 db.matchlistquery.createIndex({ state: 1 })
-
-db.matches.createIndex({ state: 1 })
-db.matchtimelines.createIndex({ gameId: 1 })
-db.matchlistquery.createIndex({ state: 1 })
-db.summoners.createIndex({ accountId: 1 })
+db.summoners.createIndex({ state: 1 })
