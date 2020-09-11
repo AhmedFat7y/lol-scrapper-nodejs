@@ -21,19 +21,18 @@ export default class MatchDetailsScraper extends ScraperBase {
 		}
 		let { gameId, participantIdentities, platformId } = match;
 		if (!participantIdentities) {
-			logger.log('Fetch Details for Match:', gameId);
+			logger.log('Fetch Details for Match:', platformId, gameId);
 			const matchDetails = await this.apis.getMatchDetails({
 				gameId,
 				region: platformId,
 			});
 			if (!matchDetails) {
 				await MatchDataStore.markProcessed(gameId, platformId);
-				await MatchDataStore.markProcessed(gameId, platformId);
 				logger.error('No match details found for', gameId, platformId);
 				return true;
 			}
 			participantIdentities = matchDetails.participantIdentities;
-			await MatchDataStore.updateWithID(gameId, matchDetails);
+			await MatchDataStore.updateWithID(gameId, matchDetails, { platformId });
 		}
 		const players = [];
 		for (const participant of participantIdentities) {
@@ -81,7 +80,7 @@ export default class MatchDetailsScraper extends ScraperBase {
 		} while (!didSaveSummoners);
 		const matchTimelineExists = await MatchTimelineDatastore.checkExists(gameId, platformId);
 		if (!matchTimelineExists) {
-			logger.log('Fetch timeline for Match:', gameId);
+			logger.log('Fetch timeline for Match:', platformId, gameId);
 			const timeline = await this.apis.getMatchTimeline({
 				gameId,
 				region: platformId,

@@ -18,7 +18,10 @@ export default class MatchListScraper extends ScraperBase {
 		}
 		const { accountId, name, platformId } = summoner;
 
+		logger.log('Found summoner:', summoner);
+
 		if (accountId === name) {
+			logger.log('Champion summoner mark processed');
 			await SummonerDataStore.markProcessed(accountId, platformId);
 			return true;
 		}
@@ -27,7 +30,7 @@ export default class MatchListScraper extends ScraperBase {
 		do {
 			const query = { beginIndex };
 			const matchlistQueryId = Utils.calculateMatchListQueryId(accountId, platformId, query);
-
+			logger.log('Trying:', matchlistQueryId);
 			const exists = await MatchListQueryDataStore.checkExists(matchlistQueryId, platformId);
 			if (exists) {
 				logger.log('Query ID exists:', matchlistQueryId);
@@ -42,6 +45,7 @@ export default class MatchListScraper extends ScraperBase {
 			});
 
 			if (!matchListResult) {
+				logger.log('match list not found for', summoner);
 				await SummonerDataStore.markProcessed(accountId, platformId);
 				return true;
 			}
