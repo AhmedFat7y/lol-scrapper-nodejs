@@ -14,7 +14,7 @@
   "@babel/core": "^7.8.7",
   "@babel/node": "^7.8.7",
   "@babel/preset-env": "^7.8.7",
-  "async": "^3.2.0",
+  "async": "^3.2.2",
   "babel-eslint": "^10.1.0",
   "babel-plugin-module-resolver": "^4.0.0",
   "eslint": "^7.8.1",
